@@ -8,6 +8,10 @@ name := kelftool
 dir_source := src
 dir_build := build
 
+OUTPUT_OPTION += -I/usr/local/opt/openssl@1.1/include
+LDLIBS += -L/usr/local/opt/openssl@1.1/lib
+# user defiend location
+
 CXXFLAGS = --std=c++17
 LDLIBS = -lcrypto
 
