@@ -1,0 +1,81 @@
+name: CI-compile
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-windows:
+    name: Windows compilation
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup msbuild
+        uses: microsoft/setup-msbuild@v1.1
+
+      - run: choco install --no-progress --x86 openssl
+
+      - name: Build
+        run: msbuild /p:Configuration=Release
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: kelftool-windows
+          path: Release/kelftool.exe
+
+  build-ubuntu:
+    name: Ubuntu compilation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - run: sudo apt-get install libssl-dev
+
+      - name: Build
+        run: |
+          make
+          tar -zcvf kelftool-linux.tar.gz build/kelftool
+      - uses: actions/upload-artifact@v3
+        with:
+          name: kelftool-linux
+          path: kelftool-linux.tar.gz
+
+  release:
+    needs: [build-windows, build-ubuntu]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download kelftool artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Create pre-release
+        if: github.ref == 'refs/heads/master'
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: true
+          automatic_release_tag: "latest"
+          title: "Development build"
+          files: |
+            kelftool-linux/*
+            kelftool-macos/*
+            kelftool-windows/*
+
+      - name: Create Tagged Release Draft
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+          draft: true
+          files: |
+            kelftool-linux/*
+            kelftool-macos/*
+            kelftool-windows/*

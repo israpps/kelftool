@@ -155,7 +155,7 @@ int Kelf::LoadKelf(std::string filename)
 	return 0;
 }
 
-int Kelf::SaveKelf(std::string filename,int headerid)
+int Kelf::SaveKelf(std::string filename,int headerid, int system_type)
 {
 	FILE* f = fopen(filename.c_str(), "wb");
 
@@ -186,7 +186,7 @@ int Kelf::SaveKelf(std::string filename,int headerid)
 	memcpy(header.UserDefined, PSX_USER, 16);
 	header.ContentSize = Content.size();
 	header.HeaderSize = sizeof(KELFHeader) + 8 + 16 + 16 + 8 + 16 + 16 + 8 + 8; // header + header signature + kbit + kc + bittable + bittable signature + root signature
-	header.SystemType = SYSTEM_TYPE_PS2;
+	header.SystemType = system_type;
 	header.ApplicationType = 1; // 1 = xosdmain, 5 = dvdplayer kirx 7 = dvdplayer kelf
 	header.Flags = 0x22C;
 	header.BitCount = 0;
