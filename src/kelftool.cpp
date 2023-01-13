@@ -64,6 +64,7 @@ int decrypt(int argc, char** argv)
 
 int encrypt(int argc, char** argv)
 {
+    int systype = SYSTEM_TYPE_PS2;
 
 	int headerid=-1;
 
@@ -73,6 +74,19 @@ int encrypt(int argc, char** argv)
 		printf("<headerid>: fmcb,fhdb, mbr\n");
 		return -1;
 	}
+    if (argc > 4)
+    {
+        for (int x = 4; x < argc; x++)
+        {
+            if (!strcmp(argv[x], "--PSX"))
+                {
+                    printf("Output KELF will have PSX system type\n");
+                    systype = SYSTEM_TYPE_PSX;
+                }
+        }
+        
+    }
+
 
 if (strcmp("fmcb", argv[1]) == 0)
 	headerid=0;	
