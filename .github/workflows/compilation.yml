@@ -90,12 +90,12 @@ jobs:
             kelftool-windows/*
 
       - name: Create Tagged Release Draft
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/dnasload'
         uses: marvinpinto/action-automatic-releases@latest
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
-          draft: true
+          draft: false
           files: |
             kelftool-linux/*
             kelftool-macos/*
