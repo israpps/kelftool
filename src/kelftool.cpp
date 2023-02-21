@@ -71,7 +71,7 @@ int encrypt(int argc, char **argv)
 
     if (argc < 4) {
         printf("%s encrypt <headerid> <input> <output>\n", argv[0]);
-        printf("<headerid>: fmcb, fhdb, mbr\n");
+        printf("<headerid>: fmcb, fhdb, mbr, dnasload\n");
         return -1;
     }
 
