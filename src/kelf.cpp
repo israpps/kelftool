@@ -350,7 +350,7 @@ int Kelf::LoadKelf(const std::string filename)
     return 0;
 }
 
-int Kelf::SaveKelf(const std::string filename, int headerid, int SystemType = SYSTEM_TYPE_PS2)
+int Kelf::SaveKelf(const std::string filename, int headerid)
 {
     FILE *f = fopen(filename.c_str(), "wb");
     if (f == NULL) {
@@ -386,7 +386,7 @@ int Kelf::SaveKelf(const std::string filename, int headerid, int SystemType = SY
     memcpy(header.UserDefined, USER_HEADER, 16);
     header.ContentSize     = Content.size();      // sometimes zero
     header.HeaderSize      = bitTable.HeaderSize; // header + header signature + kbit + kc + bittable + bittable signature + root signature
-    header.SystemType      = SystemType;     // same for COH (arcade)
+    header.SystemType      = SYSTEM_TYPE_PS2;     // same for COH (arcade)
     header.ApplicationType = 1;                   // 1 = xosdmain, 5 = dvdplayer kirx 7 = dvdplayer kelf 0xB - ?? 0x00 - ??
     // TODO: implement and check 3DES/1DES difference based on header.Flags. In both - encryption and decryption.
     header.Flags    = 0x022C; // ?? 00000010 00101100 binary, 0x021C for kirx
@@ -422,7 +422,7 @@ int Kelf::SaveKelf(const std::string filename, int headerid, int SystemType = SY
     return 0;
 }
 
-int Kelf::LoadContent(const std::string filename, int kbitid)
+int Kelf::LoadContent(const std::string filename, int headerid)
 {
     FILE *f = fopen(filename.c_str(), "rb");
     if (f == NULL) {
@@ -437,7 +437,7 @@ int Kelf::LoadContent(const std::string filename, int kbitid)
 
     // TODO: encrypted Kbit hold some useful data
     static uint8_t *USER_Kbit;
-    switch (kbitid) {
+    switch (headerid) {
         case HEADERID::FMCB:
             USER_Kbit = USER_Kbit_FMCB;
             break;

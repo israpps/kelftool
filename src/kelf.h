@@ -131,8 +131,8 @@ public:
     }
 
     int LoadKelf(std::string filename);
-    int SaveKelf(std::string filename, int header, int SystemType);
-    int LoadContent(std::string filename, int kbitid);
+    int SaveKelf(std::string filename, int header);
+    int LoadContent(std::string filename, int header);
     int SaveContent(std::string filename);
 
     std::string GetHeaderSignature(KELFHeader &header);

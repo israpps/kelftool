@@ -68,67 +68,29 @@ int encrypt(int argc, char **argv)
 {
 
     int headerid = HEADERID::INVALID;
-    int Kbitid   = HEADERID::INVALID;
-    int systemtype = SYSTEM_TYPE_PS2;
+
     if (argc < 4) {
-        printf("%s encrypt --header=<headerid> --kbit=<kbit> [extra args] <input> <output>\n", argv[0]);
+        printf("%s encrypt <headerid> <input> <output>\n", argv[0]);
         printf("<headerid>: fmcb, fhdb, mbr, dnasload\n");
-        printf("<kbit>: fmcb, fhdb, mbr\n");
-        printf("extra args:\n");
-        printf("\t--system=[PS2|PSX]\n");
         return -1;
     }
 
-    for (int x = 1; x < argc; x++)
-    {
-        if (!strncmp("--header=", argv[x], 10) && headerid == HEADERID::INVALID)
-        {
-            if (strcmp("fmcb", argv[x]+10) == 0)
-                headerid = HEADERID::FMCB;
+    if (strcmp("fmcb", argv[1]) == 0)
+        headerid = HEADERID::FMCB;
 
-            if (strcmp("fhdb", argv[x]+10) == 0)
-                headerid = HEADERID::FHDB;
+    if (strcmp("fhdb", argv[1]) == 0)
+        headerid = HEADERID::FHDB;
 
-            if (strcmp("mbr", argv[x]+10) == 0)
-                headerid = HEADERID::MBR;
+    if (strcmp("mbr", argv[1]) == 0)
+        headerid = HEADERID::MBR;
 
-            if (strcmp("dnasload", argv[x]+10) == 0)
-                headerid = HEADERID::DNASLOAD;
+    if (strcmp("dnasload", argv[1]) == 0)
+        headerid = HEADERID::DNASLOAD;
 
-            if (headerid == HEADERID::INVALID)
-            {
-                printf("Invalid header ID (%s)\n", argv[x]+10);
-                return -1;
-            } else printf("using %s header...\n", argv[x]+10);
-        }
-        if (!strncmp("--kbit=", argv[x], 8) && Kbitid == HEADERID::INVALID)
-        {
-            if (strcmp("fmcb", argv[x]+8) == 0)
-                Kbitid = HEADERID::FMCB;
+    if (headerid == HEADERID::INVALID) {
 
-            if (strcmp("fhdb", argv[x]+8) == 0)
-                Kbitid = HEADERID::FHDB;
-
-            if (strcmp("mbr", argv[x]+8) == 0)
-                Kbitid = HEADERID::MBR;
-
-            if (Kbitid == HEADERID::INVALID)
-            {
-                printf("Invalid kbit ID (%s)\n", argv[x]+8);
-                return -1;
-            } else printf("using %s kbit...\n", argv[x+8]);
-        }
-        if (!strncmp("--system=", argv[x], 10))
-        {
-            if (strcmp("PS2", argv[x]+10) == 0)
-                systemtype = SYSTEM_TYPE_PS2;
-
-            if (strcmp("PSX", argv[x]+10) == 0)
-            {
-                systemtype = SYSTEM_TYPE_PSX;
-                printf("flagging as PSX-DESR KELF...\n");
-            }
-        }
+        printf("Invalid header: %s\n", argv[1]);
+        return -1;
     }
 
     KeyStore ks;
@@ -143,13 +105,13 @@ int encrypt(int argc, char **argv)
     }
 
     Kelf kelf(ks);
-    ret = kelf.LoadContent(argv[argc-2], Kbitid);
+    ret = kelf.LoadContent(argv[2], headerid);
     if (ret != 0) {
         printf("Failed to LoadContent!\n");
         return ret;
     }
 
-    ret = kelf.SaveKelf(argv[argc-1], headerid, systemtype);
+    ret = kelf.SaveKelf(argv[3], headerid);
     if (ret != 0) {
         printf("Failed to SaveKelf!\n");
         return ret;
@@ -163,22 +125,15 @@ int main(int argc, char **argv)
     if (argc < 2) {
         printf("usage: %s <submodule> <args>\n", argv[0]);
         printf("Available submodules:\n");
-        printf("\tdecrypt --> decrypt and check signature of kelf files\n");
-        printf("\tencrypt --header=<headerid> --kbit=<kbitid> [optional args] 'input KELF' 'Output KELF' --> encrypt and sign kelf files\n");
-        printf("\t\t headerid:\n");
-        printf("\t\t\tfmcb     - for retail PS2 memory cards\n");
-        printf("\t\t\tdnasload - for retail PS2 memory cards (decrypts on both PS2 and PSX. some sort of 'universal KELF')\n");
-        printf("\t\t\tfhdb     - for retail PS2 HDD (HDD OSD / BB Navigator)\n");
-        printf("\t\t\tmbr      - for retail PS2 HDD (mbr injection).\n");
-        printf("\t\t kbit:\n");
-        printf("\t\t\tfmcb     - for retail PS2 memory cards\n");
-        printf("\t\t\tfhdb     - for retail PS2 HDD (HDD OSD / BB Navigator)\n");
-        printf("\t\t\tmbr      - for retail PS2 HDD (mbr injection).\n");
+        printf("\tdecrypt - decrypt and check signature of kelf files\n");
+        printf("\tencrypt <headerid> - encrypt and sign kelf files <headerid>: fmcb, dnasload, fhdb, mbr\n");
+        printf("\t\tfmcb     - for retail PS2 memory cards\n");
+        printf("\t\tdnasload - for retail PS2 memory cards (decrypts on both PS2 and PSX. some sort of 'universal KELF')\n");
+        printf("\t\tfhdb     - for retail PS2 HDD (HDD OSD / BB Navigator)\n");
+        printf("\t\tmbr      - for retail PS2 HDD (mbr injection).\n");
         printf("\t\t       Note: for mbr elf should load from 0x100000 and should be without headers:\n");
         printf("\t\t       readelf -h <input_elf> should show 0x100000 or 0x100008\n");
         printf("\t\t       $(EE_OBJCOPY) -O binary -v <input_elf> <headerless_elf>\n");
-        printf("\t\tExtra args:\n");
-        printf("\t\t\t--system=[PS2|PSX]\n");
         return -1;
     }
 
