@@ -66,33 +66,67 @@ int decrypt(int argc, char **argv)
 
 int encrypt(int argc, char **argv)
 {
-
+    int SysType = SYSTEM_TYPE_PS2;
     int headerid = HEADERID::INVALID;
+    int kbit_and_kc = HEADERID::INVALID;
+    uint16_t kelf_flags = HDR_PFLAG_KELF;
 
     if (argc < 4) {
-        printf("%s encrypt <headerid> <input> <output>\n", argv[0]);
+        printf("%s encrypt <input> <output> [flags]\n", argv[0]);
         printf("<headerid>: fmcb, fhdb, mbr, dnasload\n");
         return -1;
     }
+    for (int x=3; x<argc; x++) {
+        if (!strncmp(argv[x], "--header=", 9)) {
+            if (strcmp("fmcb", &argv[x][9]) == 0)
+                headerid = HEADERID::FMCB;
 
-    if (strcmp("fmcb", argv[1]) == 0)
-        headerid = HEADERID::FMCB;
+            if (strcmp("fhdb", &argv[x][9]) == 0)
+                headerid = HEADERID::FHDB;
 
-    if (strcmp("fhdb", argv[1]) == 0)
-        headerid = HEADERID::FHDB;
+            if (strcmp("mbr", &argv[x][9]) == 0)
+                headerid = HEADERID::MBR;
 
-    if (strcmp("mbr", argv[1]) == 0)
-        headerid = HEADERID::MBR;
+            if (strcmp("dnasload", &argv[x][9]) == 0)
+                headerid = HEADERID::DNASLOAD;
 
-    if (strcmp("dnasload", argv[1]) == 0)
-        headerid = HEADERID::DNASLOAD;
+            if (headerid == HEADERID::INVALID) {
+                printf("Invalid header: %s\nAvailable Headers:", &argv[x][9]);
+                printf("\tfmcb     - for retail PS2 memory cards\n");
+                printf("\tdnasload - decrypts on both PS2 and PSX. some sort of 'universal KELF'\n");
+                printf("\tfhdb     - for retail PS2 HDD (HDD OSD / BB Navigator)\n");
+                printf("\tmbr      - for retail PS2 HDD (mbr injection).\n");
+                printf("\t       Note: for mbr elf should load from 0x100000 and should be without headers:\n");
+                return -1;
+            }
+        } else if (!strncmp(argv[x], "--kbitkc=", 9)) {
+            if (strcmp("fmcb", &argv[x][9]) == 0)
+                kbit_and_kc = HEADERID::FMCB;
 
-    if (headerid == HEADERID::INVALID) {
+            if (strcmp("fhdb", &argv[x][9]) == 0)
+                kbit_and_kc = HEADERID::FHDB;
 
-        printf("Invalid header: %s\n", argv[1]);
-        return -1;
+            if (strcmp("mbr", &argv[x][9]) == 0)
+                kbit_and_kc = HEADERID::MBR;
+
+            if (kbit_and_kc == HEADERID::INVALID) {
+                printf("Invalid Kbit & Kc: %s\n", &argv[x][9]);
+                return -1;
+            }
+        } else if (!strncmp(argv[x], "--systemtype=", 13)) {
+            if (strcmp("PS2", &argv[x][13]) == 0)
+                SysType = SYSTEM_TYPE_PS2;
+
+            if (strcmp("PSX", &argv[x][13]) == 0)
+                SysType = SYSTEM_TYPE_PSX;
+        } else if (!strncmp(argv[x], "--kflags=", 9)) {
+            if (strcmp("kelf", &argv[x][13]) == 0)
+                kelf_flags = HDR_PFLAG_KELF;
+
+            if (strcmp("kirx", &argv[x][13]) == 0)
+                kelf_flags = HDR_PFLAG_KIRX;
+        }
     }
-
     KeyStore ks;
     int ret = ks.Load(getKeyStorePath());
     if (ret != 0) {
@@ -104,14 +138,17 @@ int encrypt(int argc, char **argv)
         }
     }
 
+    if (SysType == SYSTEM_TYPE_PSX)
+        printf("-- PSX System Type selected. KELF Will only work on a PSX-DESR\n");
+
     Kelf kelf(ks);
-    ret = kelf.LoadContent(argv[2], headerid);
+    ret = kelf.LoadContent(argv[1], headerid);
     if (ret != 0) {
         printf("Failed to LoadContent!\n");
         return ret;
     }
 
-    ret = kelf.SaveKelf(argv[3], headerid);
+    ret = kelf.SaveKelf(argv[2], headerid, SysType, kelf_flags);
     if (ret != 0) {
         printf("Failed to SaveKelf!\n");
         return ret;

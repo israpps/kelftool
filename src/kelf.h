@@ -39,7 +39,7 @@ enum HEADERID {
 
     COUNT
 };
-
+const char* HEADERIDS[HEADERID::COUNT+1] = {"INVALID", "fmcb (Memory Card KELF)", "fhdb (HDD KELF)", "mbr (MBR Bootstrap or HDDOSD|PSBBN|XMB bootable KELF)", "Dnasload"};
 static uint8_t USER_HEADER_FMCB[16] =     {0x01, 0x00, 0x00, 0x01, 0x00, 0x03, 0x00, 0x4A, 0x00, 0x01, 0x02, 0x19, 0x00, 0x00, 0x00, 0x56};
 static uint8_t USER_HEADER_FHDB[16] =     {0x01, 0x00, 0x00, 0x04, 0x00, 0x02, 0x00, 0x4A, 0x00, 0x08, 0x01, 0x00, 0x00, 0x00, 0x00, 0x1B};
 static uint8_t USER_HEADER_MBR[16]  =     {0x01, 0x00, 0x00, 0x04, 0x00, 0x02, 0x01, 0x57, 0x07, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2A};
@@ -86,6 +86,9 @@ struct KELFHeader
 #define HDR_FLAG14          0x4000 // Unset. ??
 #define HDR_FLAG15          0x8000 // Unset. ??
 
+#define HDR_PFLAG_KELF 0x022C
+#define HDR_PFLAG_KIRX 0x021C
+
 // MGZones region flags. If unset - blocked in that region
 #define REGION_JP   0x1  // Japan
 #define REGION_NA   0x2  // North America
@@ -131,7 +134,7 @@ public:
     }
 
     int LoadKelf(std::string filename);
-    int SaveKelf(std::string filename, int header);
+    int SaveKelf(std::string filename, int header, int SystemType, uint16_t KFLAGS);
     int LoadContent(std::string filename, int header);
     int SaveContent(std::string filename);
 
