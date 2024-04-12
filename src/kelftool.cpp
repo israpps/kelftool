@@ -145,6 +145,9 @@ int encrypt(int argc, char **argv)
     if (strcmp("dnasload", argv[1]) == 0)
         headerid = HEADER::DNASLOAD;
 
+    if (strcmp("dongle", argv[1]) == 0)
+        headerid = HEADER::DONGLE_BOOTFILE;
+
     if (headerid == HEADER::INVALID) {
 
         printf("Invalid header: %s\n", argv[1]);
